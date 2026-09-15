@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0b0f" />
+  <title>TikTok Product Pack</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="hero">
+      <span class="eyebrow">PHOTO → PACK TIKTOK</span>
+      <h1>Crée 3 clips de 8 s à partir d’un produit</h1>
+      <p>Conçu pour gagner des abonnés et des commentaires, sans afficher le prix.</p>
+    </header>
+
+    <section class="card upload-card" aria-labelledby="photo-title">
+      <div class="section-head">
+        <div>
+          <span class="step">1</span>
+          <h2 id="photo-title">Photo du produit</h2>
+        </div>
+        <button id="resetBtn" class="ghost small" type="button">Réinitialiser</button>
+      </div>
+
+      <label class="dropzone" id="dropzone" for="photoInput">
+        <input id="photoInput" type="file" accept="image/*" capture="environment" hidden />
+        <img id="preview" alt="Aperçu du produit" hidden />
+        <div id="dropHint" class="drop-hint">
+          <span class="camera">＋</span>
+          <strong>Ajouter une photo</strong>
+          <span>Caméra ou galerie</span>
+        </div>
+      </label>
+
+      <div class="notice">Le prix n’est jamais demandé, affiché ou inventé.</div>
+    </section>
+
+    <section class="card" aria-labelledby="analysis-title">
+      <div class="section-head">
+        <div>
+          <span class="step">2</span>
+          <h2 id="analysis-title">Analyse avec GPT</h2>
+        </div>
+      </div>
+      <p class="helper">Copie ce prompt dans ChatGPT avec la photo. Puis colle ici la réponse de GPT.</p>
+      <textarea id="analysisPrompt" readonly rows="8"></textarea>
+      <div class="button-row">
+        <button id="copyAnalysisBtn" type="button" class="primary">Copier le prompt GPT</button>
+      </div>
+      <label class="field">
+        <span>Réponse de GPT</span>
+        <textarea id="analysisResult" rows="8" placeholder="Colle ici l’analyse de GPT…"></textarea>
+      </label>
+      <button id="generateBtn" type="button" class="accent">Générer le pack TikTok</button>
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section id="results" class="results" hidden>
+      <div class="results-head">
+        <div>
+          <span class="step">3</span>
+          <h2>Pack TikTok prêt</h2>
+        </div>
+        <button id="copyAllBtn" type="button" class="ghost small">Tout copier</button>
+      </div>
+
+      <article class="scene-card">
+        <div class="scene-top">
+          <div><span class="scene-num">01</span><h3>Début — arrêter le scroll</h3></div>
+          <span class="duration">8 s</span>
+        </div>
+        <textarea id="scene1" rows="10"></textarea>
+        <button class="copy-scene" data-target="scene1" type="button">Copier le prompt 1</button>
+      </article>
+
+      <article class="scene-card">
+        <div class="scene-top">
+          <div><span class="scene-num">02</span><h3>Milieu — donner envie de regarder</h3></div>
+          <span class="duration">8 s</span>
+        </div>
+        <textarea id="scene2" rows="10"></textarea>
+        <button class="copy-scene" data-target="scene2" type="button">Copier le prompt 2</button>
+      </article>
+
+      <article class="scene-card">
+        <div class="scene-top">
+          <div><span class="scene-num">03</span><h3>Fin — commenter + s’abonner</h3></div>
+          <span class="duration">8 s</span>
+        </div>
+        <textarea id="scene3" rows="10"></textarea>
+        <button class="copy-scene" data-target="scene3" type="button">Copier le prompt 3</button>
+      </article>
+
+      <article class="card output-card">
+        <h3>Légende TikTok</h3>
+        <textarea id="caption" rows="5"></textarea>
+        <button class="copy-scene" data-target="caption" type="button">Copier la légende</button>
+      </article>
+
+      <article class="card output-card">
+        <h3>5 hashtags</h3>
+        <textarea id="hashtags" rows="3"></textarea>
+        <button class="copy-scene" data-target="hashtags" type="button">Copier les hashtags</button>
+      </article>
+
+      <article class="card checklist">
+        <h3>Règles appliquées</h3>
+        <ul>
+          <li>3 clips indépendants de 8 secondes</li>
+          <li>Voix off générée avec chaque vidéo</li>
+          <li>Priorité : rétention, commentaires, abonnements</li>
+          <li>Aucun prix dans la vidéo, la voix off ou la légende</li>
+          <li>CTA final stand + Vinted</li>
+        </ul>
+      </article>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
