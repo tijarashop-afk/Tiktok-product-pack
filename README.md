@@ -35,6 +35,21 @@ L’application vérifie avant utilisation :
 - 5 hashtags
 - présence du CTA stand + Vinted
 
+## Viral Studio · HyperFrames
+
+Après la génération des 3 prompts Veo, l'application prépare automatiquement un pack de post-production HyperFrames :
+
+- brief de montage vertical 1080×1920 sur 24 secondes
+- sous-titres dynamiques avec groupes courts et style TikTok
+- plan TTS français pour Kokoro-82M via HyperFrames
+- préécoute vocale française dans le navigateur via Web Speech
+- effets dynamiques : karaoke mot par mot, emphases, marker highlights et transitions
+- respect de la règle HyperFrames : entrées animées, pas de sortie avant transition
+- export d'un manifeste JSON réutilisable par un pipeline HyperFrames
+- copie du pack complet avec les prompts Veo, la légende, les hashtags et la configuration HyperFrames
+
+Le site GitHub Pages reste entièrement statique : il prépare les scripts, timings estimés et configurations. Le rendu vidéo final, le TTS Kokoro et la transcription mot à mot sont exécutés dans un environnement HyperFrames.
+
 ## Historique
 
 Les 12 derniers packs sont conservés localement sur l’appareil via `localStorage`. Aucune photo ni donnée n’est envoyée vers un serveur par le site lui-même.
