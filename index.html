@@ -107,6 +107,61 @@
         </details>
       </section>
 
+      <section class="studio-card" id="hyperframesStudio">
+        <div class="studio-head">
+          <span class="studio-badge">HF</span>
+          <div>
+            <h3>Viral Studio · HyperFrames</h3>
+            <p>Montage 9:16 + sous-titres dynamiques + TTS français + effets.</p>
+          </div>
+        </div>
+
+        <div class="studio-grid">
+          <label class="studio-option">
+            <span>Style des sous-titres</span>
+            <select id="captionStyle">
+              <option value="social" selected>Social énergique</option>
+              <option value="clean">Clean moderne</option>
+              <option value="hype">Hype / lancement</option>
+            </select>
+          </label>
+          <label class="studio-option">
+            <span>Intensité des effets</span>
+            <select id="effectsIntensity">
+              <option value="medium">Équilibrée</option>
+              <option value="high" selected>Dynamique</option>
+              <option value="low">Douce</option>
+            </select>
+          </label>
+        </div>
+
+        <button id="generateHyperframesBtn" type="button" class="accent big full">Générer le pack HyperFrames</button>
+        <button id="previewTtsBtn" type="button" class="secondary full">▶ Préécouter la voix FR</button>
+
+        <details class="studio-output" open>
+          <summary>Prompt / brief HyperFrames</summary>
+          <textarea id="hyperframesBrief" rows="12" readonly></textarea>
+        </details>
+        <details class="studio-output">
+          <summary>TTS français</summary>
+          <textarea id="ttsScript" rows="10" readonly></textarea>
+        </details>
+        <details class="studio-output">
+          <summary>Sous-titres dynamiques</summary>
+          <textarea id="captionsPlan" rows="12" readonly></textarea>
+        </details>
+        <details class="studio-output">
+          <summary>Effets dynamiques</summary>
+          <textarea id="effectsPlan" rows="10" readonly></textarea>
+        </details>
+
+        <div class="studio-actions">
+          <button id="copyHyperframesBtn" type="button" class="secondary full">Copier le pack HyperFrames</button>
+          <button id="downloadHyperframesBtn" type="button" class="secondary full">Télécharger le manifeste JSON</button>
+        </div>
+        <p class="mini-help">Le site prépare tout le pack. Le rendu final et le TTS Kokoro sont ensuite exécutés dans HyperFrames.</p>
+      </section>
+
       <button id="copyAllBtn" type="button" class="primary big full">Tout copier</button>
       <button id="resetBtn" type="button" class="reset full">Nouveau produit</button>
     </section>
