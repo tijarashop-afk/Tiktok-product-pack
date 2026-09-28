@@ -83,6 +83,200 @@ function veoBase(product, details){
   return `Format vertical 9:16. Durée exacte : 8 secondes. Vidéo réaliste de type TikTok, pensée pour mobile. Utiliser la photo de référence pour conserver fidèlement l’apparence, les couleurs, les proportions et les détails visibles du produit. Ne pas ajouter d’objet, de logo, de texte de marque ou de caractéristique absente. Produit : ${product}. Détails autorisés : ${details}. Aucun prix à l’image ni dans la voix. AUDIO : voix off française indiquée ci-dessous, éventuellement sons naturels très discrets du produit si pertinents, mais AUCUNE MUSIQUE, aucun jingle, aucune bande-son musicale.`;
 }
 
+
+function extractVoice(prompt){
+  const m=String(prompt||"").match(/VOIX OFF[^:]*:\s*\n«([^»]+)»/i);
+  return m?m[1].trim():"";
+}
+
+function captionProfile(){
+  const style=$("captionStyle")?.value||"social";
+  if(style==="hype") return {style,groupSize:2,font:"Heavy condensed 800-900",size:"72-96px",animation:"scale-pop + karaoke + accent glow",energy:"high"};
+  if(style==="clean") return {style,groupSize:4,font:"Clean sans 600-700",size:"56-72px",animation:"fade + slide + karaoke subtil",energy:"medium"};
+  return {style,groupSize:3,font:"Rounded sans 700-800",size:"56-80px",animation:"bounce/elastic + karaoke mot par mot",energy:"medium-high"};
+}
+
+function estimateCaptionGroups(text,sceneIndex){
+  const words=String(text||"").trim().split(/\s+/).filter(Boolean);
+  if(!words.length)return[];
+  const profile=captionProfile();
+  const groups=[];
+  const sceneStart=(sceneIndex-1)*8;
+  const activeStart=sceneStart+.35;
+  const activeDuration=7.1;
+  const count=Math.ceil(words.length/profile.groupSize);
+  for(let i=0;i<count;i++){
+    const chunk=words.slice(i*profile.groupSize,(i+1)*profile.groupSize);
+    const start=activeStart+(activeDuration/count)*i;
+    const end=activeStart+(activeDuration/count)*(i+1);
+    groups.push({
+      scene:sceneIndex,
+      text:chunk.join(" "),
+      start:Number(start.toFixed(2)),
+      end:Number(end.toFixed(2)),
+      timing:"estimé — à resynchroniser sur le TTS final"
+    });
+  }
+  return groups;
+}
+
+function getHyperframesPayload(){
+  const voices=[1,2,3].map(i=>extractVoice($("scene"+i)?.value||""));
+  const profile=captionProfile();
+  const intensity=$("effectsIntensity")?.value||"high";
+  const captions=voices.flatMap((v,i)=>estimateCaptionGroups(v,i+1));
+  return {
+    version:"viralapp-hyperframes-v1",
+    format:{width:1080,height:1920,aspect:"9:16",duration:24,fps:30},
+    visualIdentity:{
+      mood:"TikTok produit dynamique, lisible, mobile-first",
+      canvas:"dark",
+      colors:{background:"#08090c",card:"#14161c",text:"#f7f8fa",accent:"#54f59a"},
+      typography:"sans-serif épaisse et très lisible",
+      avoid:["texte trop près des bords","plans surchargés","prix","musique","jump cuts"]
+    },
+    tts:{
+      engine:"Kokoro-82M via HyperFrames",
+      language:"fr-fr",
+      voiceSelection:"choisir une voix française disponible avec npx hyperframes tts --list (identifiant de langue f)",
+      scenes:[
+        {scene:1,start:0,end:8,speed:1.12,text:voices[0]},
+        {scene:2,start:8,end:16,speed:1.04,text:voices[1]},
+        {scene:3,start:16,end:24,speed:1.0,text:voices[2]}
+      ]
+    },
+    captions:{
+      profile,
+      position:"lower-middle, centré, zone sûre portrait",
+      maxWidth:900,
+      oneGroupAtATime:true,
+      hardKillAtGroupEnd:true,
+      sync:"transcrire les WAV TTS avec HyperFrames pour obtenir les timestamps mot à mot définitifs",
+      groups:captions
+    },
+    effects:{
+      intensity,
+      baseline:"karaoke mot par mot",
+      emphasis:["nom produit","mots émotionnels","CTA","STAND","VINTED","ABONNE-TOI"],
+      markerEffects:intensity==="high"?["highlight sweep","circle","burst"]:intensity==="low"?["highlight subtil"]:["highlight sweep","circle"],
+      transitions:[
+        {at:7.7,type:"cover/reveal",rule:"la scène 1 reste visible jusqu'à la transition"},
+        {at:15.7,type:"push/reveal",rule:"la scène 2 reste visible jusqu'à la transition"}
+      ],
+      sceneEntrances:"chaque élément entre avec une animation distincte",
+      exitRule:"aucune animation de sortie avant les transitions ; sortie autorisée seulement sur la scène finale",
+      music:false
+    },
+    source:{
+      product:safeTitle(),
+      veoClips:["veo-1.mp4","veo-2.mp4","veo-3.mp4"]
+    }
+  };
+}
+
+function buildHyperframesPack(){
+  if(!$("hyperframesBrief"))return;
+  const p=getHyperframesPayload();
+  const voices=p.tts.scenes.map(s=>s.text);
+  $("hyperframesBrief").value=
+`HYPERFRAMES — VIRALAPP TIKTOK
+Format : 1080×1920 · 9:16 · 24 secondes · 30 fps
+
+OBJECTIF
+Assembler les 3 clips Veo de 8 s en une vidéo TikTok fluide, sans musique, avec voix off française, sous-titres dynamiques et effets de rétention.
+
+ASSETS
+- veo-1.mp4 : HOOK
+- veo-2.mp4 : PRODUIT / COMMENTAIRE
+- veo-3.mp4 : CTA
+
+IDENTITÉ VISUELLE
+- Fond sombre premium : #08090c
+- Texte principal : #f7f8fa
+- Accent : #54f59a
+- Typographie sans-serif épaisse et lisible
+- Conserver une zone sûre : aucun texte collé aux bords
+- Ne jamais afficher de prix
+
+MOTION
+- Entrée animée pour chaque élément
+- Transition cover/reveal vers 7,7 s
+- Transition push/reveal vers 15,7 s
+- Pas d'animation de sortie avant les transitions
+- Dernière scène : fade final autorisé
+- Intensité : ${p.effects.intensity}
+
+CAPTIONS
+- Style : ${p.captions.profile.style}
+- Animation : ${p.captions.profile.animation}
+- Groupes courts, un seul groupe visible à la fois
+- Karaoke mot par mot ; accent vert sur mots importants
+- Resynchroniser les timestamps sur les WAV TTS finaux
+
+AUDIO
+- TTS français Kokoro-82M via HyperFrames
+- AUCUNE MUSIQUE
+- Sons naturels du produit uniquement s'ils existent déjà dans les clips
+
+RÈGLE FINALE
+Le produit doit rester le héros. Les effets servent la rétention et la lisibilité, sans inventer de caractéristique ni de promesse.`;
+
+  $("ttsScript").value=
+`MOTEUR : Kokoro-82M via HyperFrames
+LANGUE : fr-fr
+VOIX : choisir une voix française disponible avec « npx hyperframes tts --list »
+
+SCÈNE 1 · vitesse 1.12
+${voices[0]||"(voix non détectée)"}
+
+SCÈNE 2 · vitesse 1.04
+${voices[1]||"(voix non détectée)"}
+
+SCÈNE 3 · vitesse 1.00
+${voices[2]||"(voix non détectée)"}
+
+WORKFLOW :
+1. Générer scene1.wav, scene2.wav et scene3.wav avec HyperFrames TTS.
+2. Transcrire chaque WAV avec HyperFrames pour récupérer les timestamps mot à mot.
+3. Remplacer les timings estimés du plan captions par les timings réels.`;
+
+  $("captionsPlan").value=JSON.stringify({
+    style:p.captions.profile,
+    position:p.captions.position,
+    maxWidth:p.captions.maxWidth,
+    groups:p.captions.groups
+  },null,2);
+
+  $("effectsPlan").value=JSON.stringify(p.effects,null,2);
+}
+
+function previewFrenchTts(){
+  if(!("speechSynthesis" in window)){flash("Préécoute vocale non disponible sur ce navigateur.");return}
+  window.speechSynthesis.cancel();
+  const text=[1,2,3].map(i=>extractVoice($("scene"+i)?.value||"")).filter(Boolean).join(" ... ");
+  if(!text){flash("Génère d'abord les prompts.");return}
+  const utter=new SpeechSynthesisUtterance(text);
+  utter.lang="fr-FR";
+  utter.rate=1.05;
+  const voices=window.speechSynthesis.getVoices();
+  const fr=voices.find(v=>/^fr/i.test(v.lang));
+  if(fr)utter.voice=fr;
+  window.speechSynthesis.speak(utter);
+  flash("Préécoute TTS française lancée ▶");
+}
+
+function downloadHyperframesManifest(){
+  const payload=getHyperframesPayload();
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download=(safeTitle().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9-_]+/g,"-").replace(/^-+|-+$/g,"").toLowerCase()||"viralapp")+"-hyperframes.json";
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),500);
+  flash("Manifeste HyperFrames téléchargé ✓");
+}
+
 function buildPack(){
   if(!productTitle.value.trim()){flash("Ajoute le titre du produit.");return}
   if(!analysisResult.value.trim()){flash("Colle d’abord l’analyse de ChatGPT.");return}
@@ -106,6 +300,7 @@ function buildPack(){
   const tags=[tag.length>1?tag:"#Trouvaille","#Trouvaille","#VintedFrance","#PetitCommerce","#PourToi"];
   $("hashtags").value=tags.join(" ");
 
+  buildHyperframesPack();
   runChecks();
   $("results").hidden=false;
   saveHistory();
@@ -115,6 +310,17 @@ function buildPack(){
 }
 
 generateBtn.addEventListener("click",buildPack);
+
+$("generateHyperframesBtn")?.addEventListener("click",()=>{buildHyperframesPack();flash("Pack HyperFrames généré ✓")});
+$("captionStyle")?.addEventListener("change",buildHyperframesPack);
+$("effectsIntensity")?.addEventListener("change",buildHyperframesPack);
+$("previewTtsBtn")?.addEventListener("click",previewFrenchTts);
+$("copyHyperframesBtn")?.addEventListener("click",async()=>{
+  buildHyperframesPack();
+  const txt=["=== HYPERFRAMES ===",$("hyperframesBrief").value,"=== TTS ===",$("ttsScript").value,"=== CAPTIONS ===",$("captionsPlan").value,"=== EFFETS ===",$("effectsPlan").value].join("\n\n");
+  await copyText(txt);flash("Pack HyperFrames copié ✓");
+});
+$("downloadHyperframesBtn")?.addEventListener("click",()=>{buildHyperframesPack();downloadHyperframesManifest()});
 
 function wordCountVoice(prompt){
   const m=prompt.match(/VOIX OFF[^:]*:\s*\n«([^»]+)»/i);
@@ -158,7 +364,7 @@ function loadHistory(id){
   const item=getHistory().find(x=>x.id===id);if(!item)return;
   productTitle.value=item.title;analysisResult.value=item.analysis||"";
   ["scene1","scene2","scene3","caption","hashtags"].forEach(k=>$(k).value=item[k]||"");
-  updateAnalysisPrompt();updateGenerateState();runChecks();$("results").hidden=false;$("results").scrollIntoView({behavior:"smooth",block:"start"});
+  updateAnalysisPrompt();updateGenerateState();buildHyperframesPack();runChecks();$("results").hidden=false;$("results").scrollIntoView({behavior:"smooth",block:"start"});
 }
 $("clearHistoryBtn").addEventListener("click",()=>{setHistory([]);renderHistory()});
 
@@ -166,12 +372,16 @@ function copyHandler(button){button.addEventListener("click",async()=>{const tar
 document.querySelectorAll(".copy-video,.copy-extra").forEach(copyHandler);
 
 $("copyAllBtn").addEventListener("click",async()=>{
-  const all=["=== VEO 1 ===",$("scene1").value,"=== VEO 2 ===",$("scene2").value,"=== VEO 3 ===",$("scene3").value,"=== LÉGENDE ===",$("caption").value,"=== HASHTAGS ===",$("hashtags").value].join("\n\n");
+  buildHyperframesPack();
+  const all=["=== VEO 1 ===",$("scene1").value,"=== VEO 2 ===",$("scene2").value,"=== VEO 3 ===",$("scene3").value,"=== LÉGENDE ===",$("caption").value,"=== HASHTAGS ===",$("hashtags").value,"=== HYPERFRAMES ===",$("hyperframesBrief").value,"=== TTS ===",$("ttsScript").value,"=== CAPTIONS ===",$("captionsPlan").value,"=== EFFETS ===",$("effectsPlan").value].join("\n\n");
   await copyText(all);flash("Pack Veo complet copié ✓");
 });
 
 $("resetBtn").addEventListener("click",()=>{
-  productTitle.value="";photoInput.value="";preview.src="";preview.hidden=true;dropHint.hidden=false;photoDone.hidden=true;analysisResult.value="";$("results").hidden=true;updateAnalysisPrompt();updateGenerateState();window.scrollTo({top:0,behavior:"smooth"});
+  window.speechSynthesis?.cancel();
+  productTitle.value="";photoInput.value="";preview.src="";preview.hidden=true;dropHint.hidden=false;photoDone.hidden=true;analysisResult.value="";$("results").hidden=true;
+  ["hyperframesBrief","ttsScript","captionsPlan","effectsPlan"].forEach(id=>{if($(id))$(id).value=""});
+  updateAnalysisPrompt();updateGenerateState();window.scrollTo({top:0,behavior:"smooth"});
 });
 
 updateAnalysisPrompt();updateGenerateState();renderHistory();
