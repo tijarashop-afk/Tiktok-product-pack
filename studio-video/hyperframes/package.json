@@ -1,0 +1,17 @@
+{
+  "name": "studio-video-hyperframes",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Rendus video verticaux avec HyperFrames pour Studio Video",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "lint": "hyperframes lint",
+    "check": "hyperframes check",
+    "render": "hyperframes render --output renders/studio-video-test.mp4",
+    "browser:ensure": "hyperframes browser ensure"
+  },
+  "dependencies": {
+    "hyperframes": "0.9.12"
+  }
+}
