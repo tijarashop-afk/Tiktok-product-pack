@@ -1,0 +1,89 @@
+name: Studio Vidéo - Test HyperFrames 0.9.12
+
+on:
+  push:
+    branches:
+      - main
+      - studio-video/hyperframes-setup-20261104
+    paths:
+      - .github/workflows/studio-video-hyperframes.yml
+      - studio-video/hyperframes/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: studio-video-hyperframes-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  render:
+    name: Installer et rendre MP4 vertical
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CI: "true"
+      HYPERFRAMES_NO_UPDATE_CHECK: "1"
+      HYPERFRAMES_SKIP_SKILLS: "1"
+      HYPERFRAMES_NO_TELEMETRY: "1"
+      DO_NOT_TRACK: "1"
+    defaults:
+      run:
+        shell: bash
+        working-directory: studio-video/hyperframes
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Installer Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Vérifier FFmpeg
+        run: |
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
+
+      - name: Installer HyperFrames 0.9.12
+        run: |
+          npm install --no-audit --no-fund
+          node -e "const p=require('./node_modules/hyperframes/package.json'); if(p.version!=='0.9.12') process.exit(1); console.log('HyperFrames '+p.version)"
+          npx --no-install hyperframes --version
+
+      - name: Préparer Chrome headless
+        run: npx --no-install hyperframes browser ensure
+
+      - name: Vérifier la composition
+        run: npx --no-install hyperframes lint
+
+      - name: Rendu HyperFrames en MP4
+        run: |
+          mkdir -p renders
+          npx --no-install hyperframes render --fps 30 --output renders/studio-video-test.mp4
+
+      - name: Contrôle du MP4 et décodage
+        run: |
+          test -s renders/studio-video-test.mp4
+          width=$(ffprobe -v error -select_streams v:0 -show_entries stream=width -of csv=p=0 renders/studio-video-test.mp4)
+          height=$(ffprobe -v error -select_streams v:0 -show_entries stream=height -of csv=p=0 renders/studio-video-test.mp4)
+          fps=$(ffprobe -v error -select_streams v:0 -show_entries stream=avg_frame_rate -of csv=p=0 renders/studio-video-test.mp4)
+          duration=$(ffprobe -v error -show_entries format=duration -of csv=p=0 renders/studio-video-test.mp4)
+          echo "Vidéo : ${width}x${height} ; ${fps} images/s ; ${duration} secondes"
+          test "$width" = "1080"
+          test "$height" = "1920"
+          test "$fps" = "30/1"
+          python3 -c "import sys; d=float(sys.argv[1]); assert 5.8 <= d <= 6.2, f'duree inattendue: {d}'" "$duration"
+          ffmpeg -v error -i renders/studio-video-test.mp4 -f null -
+          ffprobe -v error -show_entries format=duration:stream=codec_name,codec_type,width,height,avg_frame_rate -of json renders/studio-video-test.mp4 > renders/controle-technique.json
+
+      - name: Publier la vidéo et la fiche de contrôle
+        uses: actions/upload-artifact@v4
+        with:
+          name: studio-video-hyperframes-0-9-12-test
+          path: |
+            studio-video/hyperframes/renders/studio-video-test.mp4
+            studio-video/hyperframes/renders/controle-technique.json
+          if-no-files-found: error
+          retention-days: 14
